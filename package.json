@@ -1,0 +1,17 @@
+{
+  "name": "leafkit",
+  "version": "1.0.0",
+  "description": "LeafKit — A visual blog config & article editor for Astro-based blog themes",
+  "main": "server.cjs",
+  "scripts": {
+    "start": "node server.cjs",
+    "dev": "node server.cjs"
+  },
+  "keywords": ["blog", "editor", "astro", "cms", "mizuki", "firefly"],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": ""
+  }
+}
