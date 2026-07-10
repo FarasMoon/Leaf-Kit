@@ -1,0 +1,518 @@
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>LeafKit</title>
+    <link rel="icon" type="image/png" href="image/logo.png?v=2" />
+    <link rel="shortcut icon" type="image/png" href="image/logo.png?v=2" />
+  <link rel="stylesheet" href="styles/main.css">
+  </head>
+  <body>
+    <div class="app">
+      <!-- ===== 顶部栏 ===== -->
+      <header class="topbar">
+        <button
+          class="btn btn-secondary btn-sm"
+          onclick="toggleSidebar()"
+          title="切换侧栏"
+        >
+          ☰
+        </button>
+        <span class="logo">
+          <img class="logo-icon" src="image/logo.png" alt="LeafKit" width="22" height="22" />
+          <span class="logo-text">LeafKit</span>
+        </span>
+        <span class="sep"></span>
+        <span class="platform-badge" id="platformBadge" title="点击切换平台" onclick="togglePlatform()" style="cursor:pointer">
+          <span class="platform-dot"></span>
+          <span id="platformLabel">-</span>
+        </span>
+        <button class="btn btn-primary btn-sm" onclick="selectProjectDir()">
+          选择项目
+        </button>
+        <button
+          class="btn btn-primary btn-sm"
+          id="btnPreviewToggle"
+          onclick="togglePreview()"
+          disabled
+        >
+          启动预览
+        </button>
+        <button
+          class="btn btn-secondary btn-sm"
+          id="btnSaveAll"
+          onclick="saveAllConfig()"
+          disabled
+        >
+          保存全部
+        </button>
+        <button
+          class="btn btn-success btn-sm"
+          id="btnPush"
+          onclick="pushToGitHub()"
+          disabled
+        >
+          推送到 GitHub
+        </button>
+        <button
+          class="btn btn-secondary btn-sm"
+          id="btnRefresh"
+          onclick="refreshAllConfigs()"
+          style="display: none"
+        >
+          刷新
+        </button>
+      </header>
+
+      <!-- ===== 主内容区 ===== -->
+      <div class="main">
+        <!-- Sidebar -->
+        <nav class="sidebar" id="sidebar">
+          <div class="nav-section" id="navMain">
+            <button
+              class="nav-item nav-accordion active collapsed"
+              data-panel="config"
+              onclick="toggleNavAccordion(this)"
+            >
+              <span class="accordion-arrow">▼</span>
+              配置管理
+            </button>
+            <div class="nav-accordion-body collapsed" id="navConfigItems"></div>
+            <button
+              class="nav-item"
+              data-panel="articles"
+              onclick="switchPanel('articles')"
+            >
+              文章管理
+              <span class="badge" id="articleCount">-</span>
+            </button>
+          </div>
+          <div class="nav-section" id="navDocs" style="padding:6px 12px;border-top:1px solid var(--border)">
+            <a id="linkGettingStarted" href="#" target="_blank" rel="noopener" style="font-size:12px;color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:6px;padding:4px 0">
+              <span>&#128214;</span> 使用文档
+            </a>
+          </div>
+          <button class="btn-settings" onclick="switchPanel('publish')">
+            <span class="settings-icon">&#9881;</span>
+            设置
+          </button>
+          <div class="sidebar-status" id="sidebarStatus">
+            <span class="status-dot saved" id="statusDot" title="保存状态"></span>
+            <span id="statusText">就绪</span>
+          </div>
+        </nav>
+
+        <!-- Content -->
+        <div class="content" id="contentArea">
+          <!-- ===== 面板: 配置管理 ===== -->
+          <div class="content-panel active" id="panel-config">
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 20px;
+              "
+            >
+              <h2 style="font-size: 18px; flex: 1">配置管理</h2>
+            </div>
+            <div id="configCards">
+              <div class="empty-state">
+                <div class="icon">+</div>
+                <h3>请先选择项目目录</h3>
+                <p>
+                  点击顶部栏 "选择项目" 按钮，选择博客项目根目录<br />选择后即可编辑
+                  src/config/ 下的所有配置文件
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== 面板: 文章管理 ===== -->
+          <div class="content-panel" id="panel-articles">
+            <!-- 文章列表 -->
+            <div id="articleListSection">
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 12px;
+                  margin-bottom: 20px;
+                "
+              >
+                <h2 style="font-size: 18px; flex: 1">文章管理</h2>
+                <button
+                  class="btn btn-primary btn-sm"
+                  onclick="openNewArticle()"
+                >
+                  + 新建文章
+                </button>
+                <button
+                  class="btn btn-secondary btn-sm"
+                  onclick="loadArticles()"
+                >
+                  刷新
+                </button>
+              </div>
+              <div class="toolbar-row">
+                <input
+                  type="text"
+                  class="search-input"
+                  id="articleSearch"
+                  placeholder="搜索文章标题..."
+                  oninput="filterArticles()"
+                />
+                <select
+                  id="articleFilter"
+                  onchange="filterArticles()"
+                  style="
+                    padding: 8px 12px;
+                    border: 1px solid var(--border);
+                    border-radius: var(--radius-sm);
+                    background: var(--bg3);
+                    color: var(--text);
+                    font-size: 13px;
+                    outline: none;
+                  "
+                >
+                  <option value="all">全部</option>
+                  <option value="published">已发布</option>
+                  <option value="draft">草稿</option>
+                  <option value="pinned">置顶</option>
+                  <option value="encrypted">加密</option>
+                </select>
+              </div>
+              <div style="overflow-x: auto">
+                <table class="article-table">
+                  <thead>
+                    <tr>
+                      <th>标题</th>
+                      <th>分类</th>
+                      <th>标签</th>
+                      <th>日期</th>
+                      <th>状态</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="articleTableBody">
+                    <tr>
+                      <td colspan="6">
+                        <div class="empty-state"><p>请先选择项目目录</p></div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <!-- /文章列表区域 -->
+
+            <!-- 内联编辑器 -->
+            <div
+              id="articleEditorInline"
+              style="
+                display: none;
+                flex-direction: column;
+                height: calc(100vh - 160px);
+                overflow-y: auto;
+              "
+            >
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 12px;
+                  margin-bottom: 12px;
+                "
+              >
+                <h2 style="font-size: 18px; flex: 1" id="articleEditorTitle">
+                  编辑文章
+                </h2>
+                <span
+                  id="articleFilePath"
+                  style="font-size: 11px; color: var(--text3)"
+                ></span>
+                <button
+                  class="btn btn-secondary btn-sm"
+                  onclick="closeArticleEditor()"
+                >
+                  返回列表
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="saveArticle()">
+                  保存文章
+                </button>
+              </div>
+              <!-- 前置元数据 -->
+              <div class="card" style="margin-bottom: 12px">
+                <div class="card-header" onclick="toggleCardBody(this)">
+                  <span class="arrow">▼</span>
+                  <h3>文章属性</h3>
+                </div>
+                <div class="card-body" id="articleFrontMatter">
+                  <div class="form-grid">
+                    <div class="form-group">
+                      <label>标题</label
+                      ><input
+                        type="text"
+                        id="af-title"
+                        placeholder="文章标题"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label>发布日期</label
+                      ><input type="date" id="af-published" />
+                    </div>
+                    <div class="form-group">
+                      <label>更新日期</label
+                      ><input type="date" id="af-updated" />
+                    </div>
+                    <div class="form-group">
+                      <label>描述</label
+                      ><input
+                        type="text"
+                        id="af-description"
+                        placeholder="文章描述"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label>封面图片</label
+                      ><input
+                        type="text"
+                        id="af-image"
+                        placeholder="./cover.webp"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label>分类</label
+                      ><input
+                        type="text"
+                        id="af-category"
+                        placeholder="分类名称"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label>标签 (逗号分隔)</label
+                      ><input
+                        type="text"
+                        id="af-tags"
+                        placeholder="标签1, 标签2"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label>许可证</label
+                      ><input
+                        type="text"
+                        id="af-license"
+                        placeholder="CC BY-NC-SA 4.0"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label>作者</label
+                      ><input type="text" id="af-author" placeholder="作者名" />
+                    </div>
+                    <div class="form-group">
+                      <label>来源链接</label
+                      ><input
+                        type="text"
+                        id="af-source"
+                        placeholder="https://..."
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label>别名 (URL Slug)</label
+                      ><input
+                        type="text"
+                        id="af-alias"
+                        placeholder="custom-slug"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label>语言</label
+                      ><select id="af-lang">
+                        <option value="">默认</option>
+                        <option value="zh-CN">简体中文</option>
+                        <option value="en">English</option>
+                        <option value="ja">日本語</option>
+                      </select>
+                    </div>
+                    <div class="form-row form-full">
+                      <label class="checkbox-label"
+                        ><input type="checkbox" id="af-draft" /><span
+                          >草稿</span
+                        ></label
+                      >
+                      <label class="checkbox-label"
+                        ><input type="checkbox" id="af-pinned" /><span
+                          >置顶</span
+                        ></label
+                      >
+                      <label class="checkbox-label"
+                        ><input type="checkbox" id="af-comment" checked /><span
+                          >启用评论</span
+                        ></label
+                      >
+                      <label class="checkbox-label"
+                        ><input
+                          type="checkbox"
+                          id="af-encrypted"
+                          onchange="
+                            document
+                              .getElementById('af-password-row')
+                              .classList.toggle('hidden', !this.checked)
+                          "
+                        /><span>加密</span></label
+                      >
+                    </div>
+                    <div class="form-group hidden" id="af-password-row">
+                      <label>访问密码</label
+                      ><input
+                        type="text"
+                        id="af-password"
+                        placeholder="访问密码"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label>优先级</label
+                      ><input
+                        type="number"
+                        id="af-priority"
+                        value="0"
+                        min="0"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- 编辑器分屏 -->
+              <div class="editor-split" style="flex: 1; min-height: 0">
+                <div class="editor-pane">
+                  <div class="pane-header">Markdown 编辑</div>
+                  <div class="pane-body">
+                    <textarea
+                      id="articleContent"
+                      placeholder="在此输入 Markdown 内容..."
+                    ></textarea>
+                  </div>
+                </div>
+                <div class="editor-pane">
+                  <div class="pane-header">预览</div>
+                  <div class="pane-body">
+                    <div class="preview-content" id="articlePreview"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ===== 面板: 设置（原预览/发布 + 设置） ===== -->
+          <div class="content-panel" id="panel-publish">
+            <h2 style="font-size: 18px; margin-bottom: 20px">设置</h2>
+
+            <!-- 主题 -->
+            <div class="settings-modal-section">
+              <h3>主题</h3>
+              <div style="display: flex; gap: 12px">
+                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer">
+                  <input type="radio" name="settingTheme" value="light" onchange="applySettingTheme('light')" /> 浅色模式
+                </label>
+                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer">
+                  <input type="radio" name="settingTheme" value="dark" onchange="applySettingTheme('dark')" /> 夜间模式
+                </label>
+              </div>
+            </div>
+
+            <!-- 编辑器主题色 -->
+            <div class="settings-modal-section">
+              <h3>编辑器主题色</h3>
+              <div style="display: flex; align-items: center; gap: 10px">
+                <input type="color" id="settingAccent" value="#2080d0" style="width:32px;height:32px;border:none;border-radius:6px;cursor:pointer;padding:0" onchange="document.getElementById('accentDemo').style.background=this.value" />
+                <input type="text" id="settingAccentHex" value="#2080d0" style="width:80px;padding:4px 8px;font-size:12px;border-radius:4px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:var(--font-mono)" oninput="document.getElementById('settingAccent').value=this.value;document.getElementById('accentDemo').style.background=this.value" />
+                <span id="accentDemo" style="width:60px;height:22px;border-radius:4px;background:#2080d0;display:inline-block"></span>
+                <button class="btn btn-secondary btn-sm" onclick="document.getElementById('settingAccent').value='#2080d0';document.getElementById('settingAccentHex').value='#2080d0';document.getElementById('accentDemo').style.background='#2080d0'">默认</button>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+                <label class="toggle" style="vertical-align:middle">
+                  <input type="checkbox" id="settingCustomAccent" checked onchange="toggleAccentLock(!this.checked)" />
+                  <span class="slider"></span>
+                </label>
+                <span style="font-size:12px;cursor:pointer" onclick="document.getElementById('settingCustomAccent').click()">自定义主题色</span>
+              </div>
+            </div>
+
+            <!-- 自动检测平台 -->
+            <div class="settings-modal-section">
+              <h3>自动检测</h3>
+              <div style="display:flex;align-items:center;gap:8px">
+                <label class="toggle" style="vertical-align:middle">
+                  <input type="checkbox" id="settingAutoDetect" onchange="onAutoDetectChange(this.checked)" />
+                  <span class="slider"></span>
+                </label>
+                <span style="font-size:12px;cursor:pointer" onclick="document.getElementById('settingAutoDetect').click()">根据项目目录名自动检测平台 (Firefly / Mizuki / Fuwari)</span>
+              </div>
+            </div>
+
+            <!-- GitHub 配置 -->
+            <div class="settings-modal-section">
+              <h3>Git 推送配置</h3>
+              <label style="display:block;font-size:12px;margin-bottom:4px;color:var(--text2)">仓库路径</label>
+              <input type="text" id="settingGitRepo" placeholder="用户名/仓库名，如 octocat/hello-world" style="width:100%;margin-bottom:8px;padding:6px 8px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:var(--font-mono);font-size:12px" />
+              <label style="display:block;font-size:12px;margin-bottom:4px;color:var(--text2)">SSH 远程地址（留空自动用 git@github.com:用户名/仓库名）</label>
+              <input type="text" id="settingGitRemote" placeholder="git@github.com:用户名/仓库名.git" style="width:100%;margin-bottom:8px;padding:6px 8px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:var(--font-mono);font-size:12px" />
+              <label style="display:block;font-size:12px;margin-bottom:4px;color:var(--text2)">目标分支</label>
+              <input type="text" id="settingGitBranch" placeholder="gh-pages" style="width:100%;margin-bottom:8px;padding:6px 8px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:var(--font-mono);font-size:12px" />
+              <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+                <button class="btn btn-secondary btn-sm" onclick="testSSHFromSettings()">测试 SSH 连接</button>
+                <span id="settingGitTestResult" style="font-size:12px"></span>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:8px;justify-content:flex-end;margin:16px 0">
+              <button class="btn btn-danger btn-sm" onclick="clearCacheAndReload()">清除缓存</button>
+              <span style="flex:1"></span>
+              <button class="btn btn-primary btn-sm" onclick="saveSettings()">保存设置</button>
+            </div>
+
+            <!-- 操作按钮行 -->
+            <div class="publish-actions" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px">
+              <button class="btn btn-success btn-sm hidden" onclick="openPreviewWindow()" id="btnPreviewOpen">浏览器打开</button>
+              <span class="preview-status hidden" id="previewStatus"><span class="preview-dot"></span> 运行中</span>
+              <button class="btn btn-warning btn-sm hidden" onclick="cancelGitPush()" id="btnCancelPush">取消推送</button>
+              <button class="btn btn-secondary btn-sm" onclick="checkSSHStatus()">检查 SSH</button>
+              <code id="pushRepoUrl" style="font-size:11px;background:transparent">请在设置中配置仓库</code>
+            </div>
+
+            <!-- 统一终端 -->
+            <div class="terminal" id="terminal">
+              <div class="terminal-header">
+                <span class="terminal-title">控制台</span>
+                <div class="terminal-actions">
+                  <button class="terminal-btn" onclick="clearTerminal()">清空</button>
+                  <button class="terminal-btn active" onclick="toggleTerminalAutoscroll()" id="btnAutoscroll">自动滚动: 开</button>
+                </div>
+              </div>
+              <div class="terminal-body" id="terminalBody"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 平台水印 -->
+    <div class="platform-watermark" id="platformWatermark"></div>
+
+    <!-- Toast 消息容器 -->
+    <div class="toast-container" id="toastContainer"></div>
+  <script src="js/state.js"></script>
+  <script src="js/schemas/schema-helpers.js"></script>
+  <script src="js/parser.js"></script>
+  <script src="js/platform.js"></script>
+  <script src="js/toast.js"></script>
+  <script src="js/sidebar.js"></script>
+  <script src="js/filesystem.js"></script>
+  <script type="module" src="js/UI.js"></script>
+  <script src="js/articles.js"></script>
+  <script src="js/publish.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/init.js"></script>
+  </body>
+</html>
