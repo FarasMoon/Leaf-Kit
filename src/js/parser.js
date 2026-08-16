@@ -20,7 +20,7 @@ function skipString(content, i) {
 
 /**
  * 跳过一个注释（行注释或块注释）。`i` 指向开头的 `/`。
- * 返回注释中最后一个字符的索引（// 则为换行符，/**/ 则为 */ 中的 /）。
+ * 返回注释中最后一个字符的索引（行注释结尾为换行符，块注释结尾为星号加斜杠）。
  */
 function skipComment(content, i) {
   if (content[i + 1] === "/") {
